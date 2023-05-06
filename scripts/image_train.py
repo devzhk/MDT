@@ -15,8 +15,20 @@ from masked_diffusion.train_util import TrainLoop
 from masked_diffusion import create_diffusion, model_and_diffusion_defaults, diffusion_defaults
 import masked_diffusion.models as models_mdt
 
+from masked_diffusion.latent_datasets import ImageNetLatentDataset
+
+from torch.utils.data import DistributedSampler, DataLoader
+from omegaconf import OmegaConf
+
+def sample_data(loader):
+    while True:
+        for batch in loader:
+            yield batch
+
+
 def main():
     args = create_argparser().parse_args()
+    config = OmegaConf.load(args.config)
 
     dist_util.setup_dist_multinode(args)
     logger.configure()
@@ -35,12 +47,19 @@ def main():
     schedule_sampler = create_named_schedule_sampler(args.schedule_sampler, diffusion)
 
     logger.log("creating data loader...")
-    data = load_data(
-        data_dir=args.data_dir,
-        batch_size=args.batch_size,
-        image_size=args.image_size,
-        class_cond=args.class_cond,
+    # Setup dataset
+    dataset = ImageNetLatentDataset(
+        config.data.root, resolution=config.data.resolution, 
+        num_channels=config.data.num_channels)
+    
+    sampler = DistributedSampler(dataset, shuffle=True)
+    loader = DataLoader(
+        dataset, batch_size=args.batch_size, shuffle=False,
+        sampler=sampler, num_workers=args.num_workers,
+        pin_memory=True, persistent_workers=True,
+        drop_last=True
     )
+    data = sample_data(loader)
 
     logger.log("training...")
     TrainLoop(
@@ -92,6 +111,7 @@ def create_argparser():
     parser.add_argument(
         "--rank", default=0, type=int, help="""rank for distrbuted training."""
     )
+    parser.add_argument("--config", type=str, help="Config file.", default="configs/imagenet.yaml")
     add_dict_to_argparser(parser, defaults)
     return parser
 

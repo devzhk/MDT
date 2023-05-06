@@ -19,6 +19,25 @@ from diffusers.models import AutoencoderKL
 INITIAL_LOG_LOSS_SCALE = 20.0
 
 
+def sample(moments, scale_factor=0.18215):
+    mean, logvar = th.chunk(moments, 2, dim=1)
+    logvar = th.clamp(logvar, -30.0, 20.0)
+    std = th.exp(0.5 * logvar)
+    z = mean + std * th.randn_like(mean)
+    z = scale_factor * z
+    return z
+
+
+def onehot2int(label_vec):
+    """
+    Find one-hot vector index.
+    Args:
+        label_vec: A one-hot vector of shape (batch_size, num_classes).
+    """
+    return th.argmax(label_vec, dim=1)
+
+
+
 class TrainLoop:
     def __init__(
         self,
@@ -175,6 +194,7 @@ class TrainLoop:
             or self.step + self.resume_step < self.lr_anneal_steps
         ):
             batch, cond = next(self.data)
+            cond = onehot2int(cond)
             self.run_step(batch, cond)
             if self.step % self.log_interval == 0:
                 logger.dumpkvs()
@@ -201,7 +221,8 @@ class TrainLoop:
         for i in range(0, batch.shape[0], self.microbatch):
 
             micro = batch[i : i + self.microbatch].to(dist_util.dev())
-            micro = self.get_first_stage_encoding(micro).detach()
+            micro = sample(micro)
+            # micro = self.get_first_stage_encoding(micro).detach()
             micro_cond = {
                 k: v[i : i + self.microbatch].to(dist_util.dev())
                 for k, v in cond.items()
