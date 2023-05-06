@@ -1,5 +1,5 @@
 #! /bin/bash
-pip install einops lmdb omegaconf wandb tqdm pyyaml accelerate blobfile
+pip install einops lmdb omegaconf wandb tqdm pyyaml accelerate blobfile mpi4py
 pip install git+https://github.com/huggingface/pytorch-image-models.git
 pip install git+https://github.com/huggingface/diffusers
 export OPENAI_LOGDIR=output_mdt_xl2
