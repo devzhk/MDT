@@ -17,6 +17,7 @@ from diffusers.models import AutoencoderKL
 # We found that the lg_loss_scale quickly climbed to
 # 20-21 within the first ~1K steps of training.
 INITIAL_LOG_LOSS_SCALE = 20.0
+import time
 
 
 def sample(moments, scale_factor=0.18215):
@@ -189,6 +190,7 @@ class TrainLoop:
             self.opt.load_state_dict(state_dict)
 
     def run_loop(self):
+        start_time = time.time()
         while (
             not self.lr_anneal_steps
             or self.step + self.resume_step < self.lr_anneal_steps
@@ -196,9 +198,14 @@ class TrainLoop:
             batch, cond = next(self.data)
             cond = onehot2int(cond)
             self.run_step(batch, cond)
-            if self.step % self.log_interval == 0:
+            if self.step % self.log_interval == 0 and self.step > 0:
+                th.cuda.synchronize()
+                end_time = time.time()
+                steps_per_sec = self.log_interval / (end_time - start_time)
+                logger.log(f'Train steps/Sec: {steps_per_sec:.2f}')
                 logger.dumpkvs()
-            if self.step % self.save_interval == 0:
+                start_time = time.time()
+            if self.step % self.save_interval == 0 and self.step > 0:
                 self.save()
                 # Run for a finite amount of time in integration tests.
                 if os.environ.get("DIFFUSION_TRAINING_TEST", "") and self.step > 0:
@@ -223,10 +230,7 @@ class TrainLoop:
             micro = batch[i : i + self.microbatch].to(dist_util.dev())
             micro = sample(micro)
             # micro = self.get_first_stage_encoding(micro).detach()
-            micro_cond = {
-                k: v[i : i + self.microbatch].to(dist_util.dev())
-                for k, v in cond.items()
-            }
+            micro_cond = {'y': cond[i: i + self.microbatch].to(dist_util.dev())}
 
             last_batch = (i + self.microbatch) >= batch.shape[0]
             t, weights = self.schedule_sampler.sample(micro.shape[0], dist_util.dev())
