@@ -148,7 +148,7 @@ def create_argparser():
     defaults.update(model_and_diffusion_defaults())
     parser = argparse.ArgumentParser()
     parser.add_argument('--scale_pow', default=4, type=float)
-    parser.add_argument('--vae_decoder', type=str, default='ema')  # ema or mse
+    parser.add_argument('--vae_decoder', type=str, default='mse')  # ema or mse
     parser.add_argument('--world_size', default=1, type=int,
                         help='number of distributed processes')
     parser.add_argument('--local_rank', default=-1, type=int)
