@@ -1,6 +1,7 @@
 pip install torch torchvision torchaudio
-pip install einops lmdb omegaconf wandb tqdm pyyaml accelerate transformers blobfile mpi4py diffusers
+pip install einops lmdb omegaconf wandb tqdm pyyaml accelerate blobfile mpi4py
 pip install git+https://github.com/huggingface/pytorch-image-models.git
+pip install diffusers["torch"]
 
 MODEL_FLAGS="--image_size 256 --model MDT_XL_2 --decode_layer 2"
 DIFFUSION_FLAGS="--num_sampling_steps 250 --num_samples 50000 --batch_size 50"
