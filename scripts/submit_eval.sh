@@ -2,7 +2,7 @@ ngc batch run \
 --name "ml-model.MDT-XL2-eval" \
 --commandline "cd /diffusion_ws/Code/MDT; git config --global --add safe.directory /diffusion_ws/Code/MDT; \
 bash scripts/eval.sh" \
---image "nvidia/pytorch:23.03-py3" \
+--image "nvidia/tensorflow:22.03-tf2-py3" \
 --ace nv-us-west-3 \
 --instance dgxa100.80g.8.norm \
 --priority NORMAL \

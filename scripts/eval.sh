@@ -16,7 +16,7 @@ do
    export OPENAI_LOGDIR=output_mdt_xl2_eval/$ckpt_id
    echo $OPENAI_LOGDIR
    torchrun --nnodes=1 --nproc_per_node=$NUM_GPUS image_sample.py --model_path $MODEL_PATH $MODEL_FLAGS $DIFFUSION_FLAGS
-   # python3 evaluator.py ../assets/fid_stats/VIRTUAL_imagenet256_labeled.npz $OPENAI_LOGDIR/samples_50000x256x256x3.npz
+   python3 evaluator.py ../assets/fid_stats/VIRTUAL_imagenet256_labeled.npz $OPENAI_LOGDIR/samples_50000x256x256x3.npz
 done
 
 
@@ -28,5 +28,5 @@ do
    export OPENAI_LOGDIR=output_mdt_xl2_eval-256/$ckpt_id
    echo $OPENAI_LOGDIR
    torchrun --nnodes=1 --nproc_per_node=$NUM_GPUS image_sample.py --model_path $MODEL_PATH $MODEL_FLAGS $DIFFUSION_FLAGS
-   # python3 evaluator.py ../assets/fid_stats/VIRTUAL_imagenet256_labeled.npz $OPENAI_LOGDIR/samples_50000x256x256x3.npz
+   python3 evaluator.py ../assets/fid_stats/VIRTUAL_imagenet256_labeled.npz $OPENAI_LOGDIR/samples_50000x256x256x3.npz
 done
