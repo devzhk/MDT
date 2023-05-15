@@ -1,6 +1,7 @@
 pip install torch torchvision torchaudio
 pip install einops lmdb omegaconf wandb tqdm pyyaml accelerate blobfile mpi4py
 pip install git+https://github.com/huggingface/pytorch-image-models.git
+pip install --upgrade transformers
 pip install diffusers["torch"]
 
 MODEL_FLAGS="--image_size 256 --model MDT_XL_2 --decode_layer 2"
@@ -30,3 +31,5 @@ do
    torchrun --nnodes=1 --nproc_per_node=$NUM_GPUS image_sample.py --model_path $MODEL_PATH $MODEL_FLAGS $DIFFUSION_FLAGS
    python3 evaluator.py ../assets/fid_stats/VIRTUAL_imagenet256_labeled.npz $OPENAI_LOGDIR/samples_50000x256x256x3.npz
 done
+
+sleep 100h
